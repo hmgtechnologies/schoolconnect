@@ -142,6 +142,16 @@ grep -q "Bind the wizard FIRST" builder.html && ok "Wizard.init runs BEFORE grid
 grep -q "grid render failed (navigation still works)" builder.html && ok "grid render wrapped in try/catch" || no "grid render not guarded"
 grep -q "if (window.event && event.currentTarget)" builder.html && ok "selectTheme/Font/Layout guarded against missing event" || no "select handlers not guarded"
 
+# 17. connect repair v1 — CRUD, camera check-in, logo, approvals, full-stack
+echo "[17] connect repair v1 fixes"
+[ -f assets/js/crud.js ] && ok "crud.js (real add/edit/delete engine) present" || no "crud.js missing"
+grep -q "CRUD.openForm" assets/js/templates.js && ok "module pages use real CRUD form (no placeholder)" || no "module pages still placeholder"
+grep -q "openAddModal(type)" assets/js/generator.js && grep -q "CRUD.openForm(type)" assets/js/generator.js && ok "openAddModal opens real form" || no "openAddModal still placeholder"
+grep -q "getUserMedia" assets/js/generator.js && grep -q "jsQR" assets/js/generator.js && ok "QR check-in supports phone camera scan" || no "camera scan missing"
+grep -q "data:image/(\[a-z0-9" database 2>/dev/null; grep -q "extMap" assets/js/generator.js && ok "logo accepts any image format (png/jpg/webp/svg…)" || no "logo format handling not broadened"
+grep -q "pageApprovals" assets/js/generator.js && ok "Approvals page (approve students/parents/staff/admissions)" || no "approvals page missing"
+grep -q "express-rate-limit" assets/js/generator.js && grep -q "SUPABASE_SERVICE_KEY" assets/js/generator.js && ok "full-stack/SaaS modern build hardened (rate-limit, service-role, Docker, render.yaml)" || no "full-stack build not hardened"
+
 echo "------------------------------------"
 echo "Passed: $pass   Failed: $fail"
 [ "$fail" = 0 ] && echo "🎉 All checks passed." || echo "⚠️  Some checks failed — see above."

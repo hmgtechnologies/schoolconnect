@@ -5,6 +5,35 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [Connect Repair v1] — 2026-06-25 — "Real CRUD, Camera Check-in, Approvals, Full-stack" (cumulative)
+
+Fixes 6 client-reported issues + major enhancements. **Nothing removed.** Free tools, no AI.
+
+### 🐞 Fixed
+- 🔴 **Module pages were placeholders** ("Form will be generated for …"): added a full
+  generic **CRUD engine** (`crud.js`) — every module page now lists live data with real
+  **Add/Edit/Delete/Export** forms mapped to the correct Supabase tables.
+- 🔴 **QR Check-in could only type IDs:** now scans the ID-card QR with the **device
+  camera** (getUserMedia + jsQR), with manual fallback.
+- 🔴 **School logo not showing:** logo packager now accepts **any image format**
+  (png/jpg/webp/gif/svg/ico/inline-svg) and every page/manifest/SW references the exact
+  packaged file. (Older deployed sites must be regenerated.)
+
+### ✨ Added / Enhanced
+- ✅ **Approvals page** (admin-only): approve/suspend/delete account requests, set roles,
+  and accept/enroll/reject admissions — interconnected with the *Request access* flow.
+- 🏗️ **Full-stack / SaaS generation:** the Modern build now emits a hardened `server.js`
+  (helmet, compression, rate-limit, health check, server-only service-role endpoint, SPA
+  fallback) plus `.env.example`, `Dockerfile`, `.dockerignore`, `render.yaml`.
+- All module pages now load real data and interlink via sidebar, Ctrl+K palette, chatbot
+  and notifications. Module total: **72**.
+
+### ✅ Verified
+- 15 builder JS valid; 77 generated pages valid; server.js valid; all 5 SQL clean +
+  idempotent on PostgreSQL 17; `verify.sh` 110/110. Cumulative guarantee intact.
+
+---
+
 ## [Repair] — 2026-06-25 — "UI Shell Repair + Part-time Timetable + Smarter Chatbot" (cumulative)
 
 Diagnosed from a deployed client screenshot. **Nothing removed.** Free tools, no AI APIs.
