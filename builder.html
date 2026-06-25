@@ -283,9 +283,15 @@
 <script src="assets/js/generator.js"></script>
 <script src="assets/js/templates.js"></script>
 <script>
-  // Render theme grid
+  // === Bind the wizard FIRST so navigation works even if a later render throws ===
+  try { Wizard.init(); } catch (err) { console.error('[builder] Wizard.init failed:', err); }
+  try { if (typeof PWAInstall !== 'undefined') PWAInstall.init(); } catch (e) {}
+  try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{}); } catch (e) {}
+
+  // Render theme grid (guarded — a failure here must never break navigation)
+  try {
   const themeGrid = document.getElementById('theme-grid');
-  themeGrid.innerHTML = window.SC.THEMES.map(t => `
+  if (themeGrid && window.SC && window.SC.THEMES) themeGrid.innerHTML = window.SC.THEMES.map(t => `
     <div class="theme-card" onclick="selectTheme('${t.id}')">
       <div class="swatches"><span style="background:${t.primary}"></span><span style="background:${t.accent}"></span><span style="background:${t.bg};border:1px solid #ccc"></span></div>
       <div class="name">${t.name}</div>
@@ -294,7 +300,7 @@
 
   // Render font grid
   const fontGrid = document.getElementById('font-grid');
-  fontGrid.innerHTML = window.SC.FONTS.map(f => `
+  if (fontGrid && window.SC && window.SC.FONTS) fontGrid.innerHTML = window.SC.FONTS.map(f => `
     <div class="theme-card" onclick="selectFont('${f.id}')">
       <div style="font-family:${f.family === 'system-ui' ? 'sans-serif' : f.family},sans-serif;font-weight:700;font-size:1.4rem;color:var(--dark);margin-bottom:4px">Aa</div>
       <div class="name">${f.name}</div>
@@ -303,30 +309,31 @@
 
   // Render layout grid
   const layoutGrid = document.getElementById('layout-grid');
-  layoutGrid.innerHTML = window.SC.LAYOUTS.map(l => `
+  if (layoutGrid && window.SC && window.SC.LAYOUTS) layoutGrid.innerHTML = window.SC.LAYOUTS.map(l => `
     <div class="theme-card" onclick="selectLayout('${l.id}')">
       <div style="font-size:2rem;margin-bottom:4px">${l.icon}</div>
       <div class="name" style="font-weight:800">${l.name}</div>
       <div class="form-help" style="margin-top:6px">${l.desc}</div>
     </div>
   `).join('');
+  } catch (err) { console.error('[builder] grid render failed (navigation still works):', err); }
 
   function selectTheme(id) {
     Wizard.config.themeId = id;
     document.querySelectorAll('#theme-grid .theme-card').forEach(el => el.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
+    if (window.event && event.currentTarget) event.currentTarget.classList.add('selected');
     Wizard.autosave();
   }
   function selectFont(id) {
     Wizard.config.fontId = id;
     document.querySelectorAll('#font-grid .theme-card').forEach(el => el.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
+    if (window.event && event.currentTarget) event.currentTarget.classList.add('selected');
     Wizard.autosave();
   }
   function selectLayout(id) {
     Wizard.config.layout = id;
     document.querySelectorAll('#layout-grid .theme-card').forEach(el => el.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
+    if (window.event && event.currentTarget) event.currentTarget.classList.add('selected');
     Wizard.autosave();
   }
 
@@ -339,9 +346,10 @@
       Wizard.config.levels = (e.target.value || '').split(',').map(s => s.trim()).filter(Boolean);
     }
   });
-  
-  // Handle Logo Upload
-  document.getElementById('logoUpload').addEventListener('change', e => {
+
+  // Handle Logo Upload (guarded)
+  var _logoEl = document.getElementById('logoUpload');
+  if (_logoEl) _logoEl.addEventListener('change', e => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 1024 * 1024) {
@@ -358,10 +366,8 @@
     }
   });
 
-  // Init
-  Wizard.init();
-  if (typeof PWAInstall !== 'undefined') PWAInstall.init();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  // (Wizard.init / PWAInstall / service-worker were already started at the top
+  //  of this script, before the grid render, so navigation can never be blocked.)
 
   // ✨ Populate the pricing estimator add-on list and wire live recalculation.
   (function initEstimator(){

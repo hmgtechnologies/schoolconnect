@@ -10,6 +10,11 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 Diagnosed from a deployed client screenshot. **Nothing removed.** Free tools, no AI APIs.
 
 ### 🐞 Fixed
+- 🔴 **Builder "Next: Branding" did nothing (client-reported):** `Wizard.init()` now runs
+  BEFORE the theme/font/layout grid rendering, and the render is wrapped in try/catch with
+  null-guards, so a grid-render error can no longer abort the script and leave the buttons
+  unbound. Removed a duplicate bottom `Wizard.init()` (no double-binding). Verified in jsdom,
+  including a sabotaged-`window.SC` scenario where Next still advances.
 - 🔴 **Disorganised post-login UI (icons in a horizontal wrap):** the deployed site lacked
   app-shell CSS. Now the **critical app-shell CSS is inlined in every page `<head>`** so the
   dashboard renders correctly even if the external stylesheet is cached/blocked. Bulletproof.

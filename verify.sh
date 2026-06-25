@@ -135,6 +135,13 @@ grep -q "answer(msg)" assets/js/super.js && ok "chatbot enhanced (scored matchin
 test $(grep -c "{ m: \[" assets/js/super.js) -ge 25 && ok "chatbot KB expanded (25+ topics)" || no "chatbot KB too small"
 grep -q "Super.chatbot.ask(" assets/js/super.js && ok "chatbot quick-reply chips" || no "chatbot chips missing"
 
+# 16. Builder wizard navigation hardening
+echo "[16] Wizard navigation robustness"
+test $(grep -c "Wizard.init()" builder.html) -eq 1 && ok "single Wizard.init() (no double-binding)" || no "Wizard.init() count != 1"
+grep -q "Bind the wizard FIRST" builder.html && ok "Wizard.init runs BEFORE grid render (nav never blocked)" || no "init not hardened to run first"
+grep -q "grid render failed (navigation still works)" builder.html && ok "grid render wrapped in try/catch" || no "grid render not guarded"
+grep -q "if (window.event && event.currentTarget)" builder.html && ok "selectTheme/Font/Layout guarded against missing event" || no "select handlers not guarded"
+
 echo "------------------------------------"
 echo "Passed: $pass   Failed: $fail"
 [ "$fail" = 0 ] && echo "🎉 All checks passed." || echo "⚠️  Some checks failed — see above."

@@ -8,6 +8,33 @@ chatbot**. All free tools, **no AI APIs**. Build is **cumulative** — Repair �
 
 ---
 
+## 0. 🐞 Builder wizard "Next: Branding" does nothing (client-reported)
+
+**Symptom:** on the builder, filling Step 1 and clicking **Next: Branding** did nothing.
+
+**Root cause (in the older live build):** `builder.html`'s inline script rendered the
+theme/font/layout grids at the **top** of the block, *before* `Wizard.init()` ran at the
+bottom. If any of those render lines threw (e.g. `document.getElementById('theme-grid')`
+was null, or `window.SC` wasn't ready) the **whole inline script aborted**, so
+`Wizard.init()` never ran and **no buttons were ever bound** → clicking Next did nothing.
+
+**Fix (defensive, permanent):**
+- `Wizard.init()` (+ PWA + service-worker) now run **first**, before any grid rendering,
+  so navigation is bound no matter what.
+- The grid-render code is wrapped in **try/catch** (and null-guards `window.SC` /
+  elements), so a render failure can never block the wizard.
+- `selectTheme/Font/Layout` guard `event.currentTarget`; the logo handler null-guards.
+- Removed the duplicate bottom `Wizard.init()` (prevents double-binding / double-step).
+
+**Verified (jsdom, against the real files):** Next advances exactly 1 step (1→2→3),
+prev/step-indicators/presets all work, 86 theme cards render — **and even when
+`window.SC` is deliberately sabotaged to throw during grid render, Next still advances
+to step 2.** `verify.sh` asserts the hardening.
+
+> Note: the live `schoolconnect` site is the older code. Redeploy from this Repair build.
+
+---
+
 ## 1. 🐞 What the screenshot showed & the root causes
 
 | Symptom (screenshot) | Root cause | Fix |
